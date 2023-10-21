@@ -1,24 +1,38 @@
 import { Card, Form, Alert, Button } from 'react-bootstrap';
 import { useState } from 'react';
-import { authenticateUser } from '@/lib/authenticate';
 import { useRouter } from 'next/router';
+import { authenticateUser } from '@/lib/authenticate';
+import {useAtom} from 'jotai';
+import {itemsAtom} from '@/store';
+import { getItems } from '@/lib/userData';
+import {Item, ItemQueue} from '@/model/item';
 
 export default function Login(props) {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
   const [warning, setWarning] = useState('');
+  const [items, setItems] = useAtom(itemsAtom);
+
+  // Load items, generate priorityQueue based on items, store queue in atom
+  async function updateItems() {
+    const itemData = await getItems();
+    const itemList = [];
+    for (const item in itemData) {
+      if (!item.complete){
+        let i = new Item(item._id, item.name, item.due, item.severity);
+        itemList.push(i);
+      }
+    }
+    setItems(new ItemQueue(itemList));
+  }
 
   const router = useRouter();
-
-  async function updateAtoms() {
-    setFavouritesList(await getFavourites());
-    setSearchHistory(await getHistory());
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     try {
       await authenticateUser(user, password);
+      await updateItems();
       router.push('/');
     } catch (err) {
       setWarning(err.message);
