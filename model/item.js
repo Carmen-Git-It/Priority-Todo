@@ -26,12 +26,13 @@ export class QItem {
     this.item = item;
     const daysLeft = getDaysLeft(item);
 
+    // Add one to severity before exponent so all severities scale with exponent
     // Make sure overdue 5 priority items are still higher priority than upcoming 5 priority, but give more weight to overdue items.
     if (daysLeft <= 0) {
-      this.priority = ((item.severity ** 2) * 10000);
+      this.priority = (((item.severity + 1) ** 2) * 10000);
     } else {
       // Severity cubed gives exponentially higher priority to items of a higher severity
-      this.priority = ((item.severity ** 3) * 1000) / daysLeft;
+      this.priority = (((item.severity + 1 ** 3)) * 1000) / daysLeft;
     }
   }
 }
