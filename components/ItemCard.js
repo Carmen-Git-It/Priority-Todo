@@ -19,9 +19,12 @@ export default function ItemCard(props) {
 
   async function remove() {
     await removeItem(item.id);
-
     setItems(items.remove(item.id));
-    setRemovedStatus(true);
+    if (props.update) {
+      props.update();
+    } else {
+      setRemovedStatus(true);
+    }
   }
 
   async function complete() {
