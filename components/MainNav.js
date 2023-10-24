@@ -22,7 +22,7 @@ export default function MainNav() {
     <>
       <Navbar expand="lg" className="fixed-top navbar-dark bg-primary" expanded={isExpanded}>
         <Container>
-          <Navbar.Brand>{token.userName ? token.userName : 'Priority Todo'}</Navbar.Brand>
+          <Navbar.Brand>{token ? token.userName : 'Priority Todo'}</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => {setIsExpanded(!isExpanded)}}/>
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
@@ -31,6 +31,11 @@ export default function MainNav() {
               <Link href="/list" legacyBehavior passHref><Nav.Link active={router.pathname === "/list"} onClick={() => {setIsExpanded(false)}}>List</Nav.Link></Link>
             </Nav>
             &nbsp;
+            {token && 
+            <Nav>
+              <Nav.Link onClick={logout}>Logout</Nav.Link>
+            </Nav>
+            }
             {!token && 
               <Nav>
                 <Link href="/register" legacyBehavior passHref><Nav.Link onClick={()=>{setIsExpanded(false)}} active={router.pathname === "/register"}>Register</Nav.Link></Link>
