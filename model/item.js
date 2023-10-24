@@ -2,24 +2,29 @@
 // name: String
 // due: Date
 // severity: Number (range[1,5])
+
+const msPerDay = 24 * 60 * 60 * 1000;
+
 export class Item {
-  constructor(id, name, due, severity) {
+  constructor(id, name, due, severity, complete) {
     this.id = id;
     this.name = name;
     this.due = due;
     this.severity = severity;
+    this.complete = complete;
   }
 }
 
-// ms per day, const for calculating priority
-const msPerDay = 24 * 60 * 60 * 1000;
+export function getDaysLeft(item) {
+  return (item.due.getTime() - new Date().getTime()) / msPerDay;
+}
 
 // Queue Item
 // Higher priority value means higher priority; descending priority queue
 export class QItem {
   constructor(item) {
     this.item = item;
-    const daysLeft = (new Date().getTime() - item.due.getTime()) / msPerDay;
+    const daysLeft = getDaysLeft(item);
 
     // Make sure overdue 5 priority items are still higher priority than upcoming 5 priority, but give more weight to overdue items.
     if (daysLeft <= 0) {
@@ -36,7 +41,7 @@ export class ItemQueue {
   constructor(items) {
     this.items = [];
     for (const item in items) {
-      this.enqueue(item);
+      this.enqueue(items[item]);
     }
   }
 
@@ -91,5 +96,10 @@ export class ItemQueue {
       str += item.item + ", ";
     }
     return str;
+  }
+
+  remove(id) {
+    this.items = this.items.filter((i) => i.id != id);
+    return this;
   }
 }
