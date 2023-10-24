@@ -15,25 +15,38 @@ export default function RouteGuard(props) {
 
   const router = useRouter();
 
-  // Load items, generate priorityQueue based on items, store queue in atom
-  async function updateItems() {
-    const itemData = await getItems();
-    const itemList = [];
-    if (itemData) {
-      for (const item in itemData) {
-        let d = new Date(itemData[item].due);
-        d.setTime(d.getTime() + d.getTimezoneOffset()*60*1000);
-        let i = new Item(itemData[item]._id, itemData[item].name, d, itemData[item].severity, itemData[item].complete);
-        itemList.push(i);
-      }
-      setItems(new ItemQueue(itemList));
-    }
-    else {
-      setItems(new ItemQueue());
-    }
-  }
+
 
   useEffect(() => {
+    // Load items, generate priorityQueue based on items, store queue in atom
+    async function updateItems() {
+      const itemData = await getItems();
+      const itemList = [];
+      if (itemData) {
+        for (const item in itemData) {
+          let d = new Date(itemData[item].due);
+          d.setTime(d.getTime() + d.getTimezoneOffset()*60*1000);
+          let i = new Item(itemData[item]._id, itemData[item].name, d, itemData[item].severity, itemData[item].complete);
+          itemList.push(i);
+        }
+        setItems(new ItemQueue(itemList));
+      }
+      else {
+        setItems(new ItemQueue());
+      }
+    }
+
+    // Checks if the user is authorized to access the url
+    function authCheck(url){
+      const path = url.split('?')[0];
+      if (!isAuthenticated() && !PUBLIC_PATHS.includes(path)){
+        setAuthorized(false);
+        router.push('/login');
+      } else {
+        setAuthorized(true);
+      }
+    }
+
     if (isAuthenticated()) {
       updateItems();
     }
@@ -44,17 +57,7 @@ export default function RouteGuard(props) {
     return () => {
       router.events.off('routeChangeComplete', authCheck);
     };
-  },[router.events, router.pathname]);
-
-  function authCheck(url){
-    const path = url.split('?')[0];
-    if (!isAuthenticated() && !PUBLIC_PATHS.includes(path)){
-      setAuthorized(false);
-      router.push('/login');
-    } else {
-      setAuthorized(true);
-    }
-  }
+  },[router.events, router.pathname, setItems, router]);
 
   return <>{authorized && props.children}</>
 }
