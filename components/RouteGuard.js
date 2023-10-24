@@ -21,7 +21,9 @@ export default function RouteGuard(props) {
     const itemList = [];
     if (itemData) {
       for (const item in itemData) {
-        let i = new Item(itemData[item]._id, itemData[item].name, new Date(itemData[item].due), itemData[item].severity, itemData[item].complete);
+        let d = new Date(itemData[item].due);
+        d.setTime(d.getTime() + d.getTimezoneOffset()*60*1000);
+        let i = new Item(itemData[item]._id, itemData[item].name, d, itemData[item].severity, itemData[item].complete);
         itemList.push(i);
       }
       setItems(new ItemQueue(itemList));
