@@ -14,6 +14,7 @@ export default function Register(props) {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
+      console.log(JSON.stringify({user, password, password2}));
       await registerUser(user, password, password2);
       router.push('/login');
     } catch (err) {

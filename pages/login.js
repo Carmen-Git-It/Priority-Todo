@@ -11,20 +11,26 @@ export default function Login(props) {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
   const [warning, setWarning] = useState('');
-  const [items, setItems] = useAtom(itemsAtom);
+  // const [items, setItems] = useAtom(itemsAtom);
 
-  // Load items, generate priorityQueue based on items, store queue in atom
-  async function updateItems() {
-    const itemData = await getItems();
-    const itemList = [];
-    for (const item in itemData) {
-      if (!item.complete){
-        let i = new Item(item._id, item.name, item.due, item.severity);
-        itemList.push(i);
-      }
-    }
-    setItems(new ItemQueue(itemList));
-  }
+  // // Load items, generate priorityQueue based on items, store queue in atom
+  // async function updateItems() {
+  //   const itemData = await getItems();
+  //   const itemList = [];
+  //   console.log(itemData);
+  //   if (itemData) {
+  //     for (const item in itemData) {
+  //       if (!item.complete){
+  //         let i = new Item(item._id, item.name, item.due, item.severity, item.complete);
+  //         itemList.push(i);
+  //       }
+  //     }
+  //     setItems(new ItemQueue(itemList));
+  //   }
+  //   else {
+  //     setItems(new ItemQueue());
+  //   }
+  // }
 
   const router = useRouter();
 
@@ -32,7 +38,6 @@ export default function Login(props) {
     e.preventDefault();
     try {
       await authenticateUser(user, password);
-      await updateItems();
       router.push('/');
     } catch (err) {
       setWarning(err.message);
