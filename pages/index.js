@@ -5,7 +5,7 @@ import ItemCard from '@/components/ItemCard';
 
 export default function Home() {
   const [items, setItems] = useAtom(itemsAtom);
-  const [v, update] = useState(false);
+  const [v, update] = useState(false);          // Hack to force component re-render on item update
 
   console.log(items.completed);
 
