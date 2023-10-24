@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { itemsAtom } from '@/store';
 import useSWR from 'swr';
 import Error from 'next/error';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import ItemCard from '@/components/ItemCard';
 
 export default function Home() {
-  const [itemList, setItemlist] = useState();
   const [items, setItems] = useAtom(itemsAtom);
 
   function getItem() {
-    return items.front();
+    return items.front().item;
   }
 
   function completeItem() {
@@ -21,7 +20,8 @@ export default function Home() {
   return (
     <>
       <h1>Priority Todo List</h1>
-      <p>{getItem()}</p>
+      {!items.isEmpty() && <ItemCard item={getItem()}></ItemCard>}
+      {items.isEmpty() && <h3>No tasks Available.</h3>}
     </>
   )
 }
