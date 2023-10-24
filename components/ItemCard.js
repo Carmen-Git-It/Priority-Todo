@@ -28,6 +28,9 @@ export default function ItemCard(props) {
     await completeItem(item.id);
     setCompleteStatus(true);
     item.complete = true;
+    if (props.update) {
+      props.update();
+    }
   }
 
   async function reset() {

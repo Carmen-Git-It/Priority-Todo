@@ -40,8 +40,15 @@ export class QItem {
 export class ItemQueue {
   constructor(items) {
     this.items = [];
+    this.completed = [];
     for (const item in items) {
-      this.enqueue(items[item]);
+      if (items[item].complete) {
+        var qItem = new QItem(items[item]);
+        qItem.priority = 0;
+        this.completed.push(qItem);
+      } else {
+        this.enqueue(items[item]);
+      }
     }
   }
 
@@ -72,7 +79,9 @@ export class ItemQueue {
     if (this.isEmpty()) {
       return null;
     }
-    return this.items.shift();
+    const item = this.items.shift();
+    this.completed.push(item);
+    return item;
   }
 
   // Returns the highest priority element
@@ -98,6 +107,7 @@ export class ItemQueue {
     return str;
   }
 
+  // Remove a specific item from the queue
   remove(id) {
     this.items = this.items.filter((i) => i.id != id);
     return this;

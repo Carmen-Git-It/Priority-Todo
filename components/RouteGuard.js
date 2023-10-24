@@ -21,10 +21,8 @@ export default function RouteGuard(props) {
     const itemList = [];
     if (itemData) {
       for (const item in itemData) {
-        if (!itemData[item].complete){
-          let i = new Item(itemData[item]._id, itemData[item].name, new Date(itemData[item].due), itemData[item].severity, itemData[item].complete);
-          itemList.push(i);
-        }
+        let i = new Item(itemData[item]._id, itemData[item].name, new Date(itemData[item].due), itemData[item].severity, itemData[item].complete);
+        itemList.push(i);
       }
       setItems(new ItemQueue(itemList));
     }
@@ -44,7 +42,7 @@ export default function RouteGuard(props) {
     return () => {
       router.events.off('routeChangeComplete', authCheck);
     };
-  },[router.events, router.pathname, items.items]);
+  },[router.events, router.pathname]);
 
   function authCheck(url){
     const path = url.split('?')[0];

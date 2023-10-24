@@ -8,7 +8,7 @@ import ItemCard from '@/components/ItemCard';
 export default function List(props) {
   const [items, setItems] = useAtom(itemsAtom);
 
-  if (items && !items.isEmpty()) {
+  if (items) {
     let itemList = [];
     items.items.forEach((item) => {
       item = item.item;
@@ -18,6 +18,14 @@ export default function List(props) {
         </Col>
       );
     });
+    items.completed.forEach((item) => {
+      item = item.item;
+      itemList.push(
+        <Col lg={3} eventKey={item.id} key={item.id}>
+          <ItemCard item={item} />
+        </Col>
+      );
+    })
     return (
       <>
         <Row className='gy-4'>
