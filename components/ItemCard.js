@@ -1,7 +1,7 @@
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 
-import {useState} from 'react';
+import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { itemsAtom } from '@/store';
 import { removeItem, completeItem, resetItem } from '@/lib/userData';
@@ -13,17 +13,27 @@ export default function ItemCard(props) {
   const [completeStatus, setCompleteStatus] = useState(item.complete);
   const [removedStatus, setRemovedStatus] = useState(false);
 
+  useEffect(() => {
+    setCompleteStatus(item.complete);
+  },[item]);
+
   async function remove() {
     await removeItem(item.id);
-
     setItems(items.remove(item.id));
-    setRemovedStatus(true);
+    if (props.update) {
+      props.update();
+    } else {
+      setRemovedStatus(true);
+    }
   }
 
   async function complete() {
     await completeItem(item.id);
     setCompleteStatus(true);
     item.complete = true;
+    if (props.update) {
+      props.update();
+    }
   }
 
   async function reset() {

@@ -31,6 +31,9 @@ export default function Add() {
     router.push('/');
   }
 
+  // TODO: Improve the severity input
+  // TODO: Adjust the date input to input the correct date +1 day probably
+
   return (
     <>
       <h1>Add New Task</h1>
@@ -53,8 +56,8 @@ export default function Add() {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label>Severity</Form.Label>
-          <Form.Control type="range" min="1" max="5" required name="severity" onChange={handleInput}/>
+          <Form.Label>Severity: {itemData.severity}</Form.Label>
+          <Form.Control type="range" min="1" max="5" defaultValue={itemData.severity} required name="severity" onChange={handleInput}/>
           <Form.Text className="text-muted">
             The importance of the task.
           </Form.Text>

@@ -26,12 +26,13 @@ export class QItem {
     this.item = item;
     const daysLeft = getDaysLeft(item);
 
+    // Add one to severity before exponent so all severities scale with exponent
     // Make sure overdue 5 priority items are still higher priority than upcoming 5 priority, but give more weight to overdue items.
     if (daysLeft <= 0) {
-      this.priority = ((item.severity ** 2) * 10000);
+      this.priority = (((item.severity + 1) ** 2) * 10000);
     } else {
       // Severity cubed gives exponentially higher priority to items of a higher severity
-      this.priority = ((item.severity ** 3) * 1000) / daysLeft;
+      this.priority = (((item.severity + 1 ** 3)) * 1000) / daysLeft;
     }
   }
 }
@@ -40,8 +41,15 @@ export class QItem {
 export class ItemQueue {
   constructor(items) {
     this.items = [];
+    this.completed = [];
     for (const item in items) {
-      this.enqueue(items[item]);
+      if (items[item].complete) {
+        var qItem = new QItem(items[item]);
+        qItem.priority = 0;
+        this.completed.push(qItem);
+      } else {
+        this.enqueue(items[item]);
+      }
     }
   }
 
@@ -72,7 +80,9 @@ export class ItemQueue {
     if (this.isEmpty()) {
       return null;
     }
-    return this.items.shift();
+    const item = this.items.shift();
+    this.completed.push(item);
+    return item;
   }
 
   // Returns the highest priority element
@@ -98,6 +108,7 @@ export class ItemQueue {
     return str;
   }
 
+  // Remove a specific item from the queue
   remove(id) {
     this.items = this.items.filter((i) => i.id != id);
     return this;
