@@ -1,17 +1,16 @@
 import { addItem } from "@/lib/userData";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { Form } from "react-bootstrap";
-import { Button } from "react-bootstrap";
+import { Form, Button, Card } from "react-bootstrap";
 
 export default function Add() {
   const router = useRouter();
 
   const [itemData, setItemData] = useState({
     name: "",
-    due: new Date(),
-    severity: 1,
-    complete: false,
+    due: new Date().toISOString().slice(0, 10),
+    urgency: 3,
+    impact: 3,
   });
 
   const handleInput = (e) => {
@@ -26,48 +25,54 @@ export default function Add() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    await addItem(itemData.name, itemData.due, itemData.severity);
+    await addItem(itemData.name, itemData.due, itemData.urgency, itemData.impact);
     router.push('/');
   }
 
-  // TODO: Improve the severity input
-  // TODO: Adjust the date input to input the correct date +1 day probably
-
   return (
-    <>
-      <h1>Add New Task</h1>
-      <br /><br />
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Task Name</Form.Label>
-          <Form.Control type="text" placeholder="Enter name" required name="name" onChange={handleInput}/>
-          <Form.Text className="text-muted">
-            Make sure the name describes the task with enough detail for you to remember later.
-          </Form.Text>
-        </Form.Group>
+    <div className="page-narrow">
+      <h1 className="page-title">Add New Task</h1>
+      <p className="page-subtitle">Describe what needs doing and how much it matters.</p>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Due Date</Form.Label>
-          <Form.Control type="date" required name="due" onChange={handleInput}/>
-          <Form.Text className="text-muted">
-            The date that the task is due.
-          </Form.Text>
-        </Form.Group>
+      <Card className="prior-card">
+        <Card.Body>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Task name</Form.Label>
+              <Form.Control type="text" placeholder="e.g. Finish quarterly report" required name="name" onChange={handleInput}/>
+              <Form.Text>Be specific enough that future-you remembers what this means.</Form.Text>
+            </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Severity: {itemData.severity}</Form.Label>
-          <Form.Control type="range" min="1" max="5" defaultValue={itemData.severity} required name="severity" onChange={handleInput}/>
-          <Form.Text className="text-muted">
-            The importance of the task.
-          </Form.Text>
-        </Form.Group>
+            <Form.Group className="mb-4">
+              <Form.Label>Due date</Form.Label>
+              <Form.Control type="date" required name="due" value={itemData.due} onChange={handleInput}/>
+            </Form.Group>
 
-        <Button type="submit">
-          Add Task
-        </Button>
-      </Form>
+            <div className="form-section">
+              <Form.Group className="mb-3">
+                <Form.Label className="d-flex align-items-center gap-2">
+                  Impact <span className="slider-value">{itemData.impact}</span>
+                </Form.Label>
+                <Form.Control type="range" min="1" max="5" value={itemData.impact} required name="impact" onChange={handleInput}/>
+                <Form.Text>The consequence of doing (or not doing) this. Main driver of priority along with the due date.</Form.Text>
+              </Form.Group>
 
-    </>
+              <Form.Group className="mb-2">
+                <Form.Label className="d-flex align-items-center gap-2">
+                  Urgency <span className="slider-value">{itemData.urgency}</span>
+                </Form.Label>
+                <Form.Control type="range" min="1" max="5" value={itemData.urgency} required name="urgency" onChange={handleInput}/>
+                <Form.Text>How pressing it feels. Used only to break ties between tasks of similar impact and due date.</Form.Text>
+              </Form.Group>
+            </div>
+
+            <div className="d-flex gap-2 mt-4">
+              <Button type="submit">Add task</Button>
+              <Button variant="outline-secondary" onClick={() => router.back()}>Cancel</Button>
+            </div>
+          </Form>
+        </Card.Body>
+      </Card>
+    </div>
   );
 }

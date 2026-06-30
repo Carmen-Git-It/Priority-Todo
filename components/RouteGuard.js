@@ -1,63 +1,61 @@
 import { useAtom } from "jotai";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import { isAuthenticated } from "@/lib/authenticate";
+import { useAuth } from "@/context/SupabaseAuthProvider";
 import { itemsAtom } from "@/store";
 import { getItems } from "@/lib/userData";
 import { Item, ItemQueue } from "@/model/item";
 
 const PUBLIC_PATHS = ['/register', '/login'];
 
+function parseDue(value) {
+  // Postgres `date` columns come back as 'YYYY-MM-DD'; parse as local midnight
+  // so .toDateString() renders the same day the user picked.
+  return new Date(value + 'T00:00:00');
+}
+
 export default function RouteGuard(props) {
+  const { user, loading } = useAuth();
   const [items, setItems] = useAtom(itemsAtom);
   const [authorized, setAuthorized] = useState(false);
 
   const router = useRouter();
 
-
-
   useEffect(() => {
-    // Load items, generate priorityQueue based on items, store queue in atom
     async function updateItems() {
-      const itemData = await getItems();
-      const itemList = [];
-      if (itemData) {
-        for (const item in itemData) {
-          let d = new Date(itemData[item].due);
-          d.setTime(d.getTime() + d.getTimezoneOffset()*60*1000);
-          let i = new Item(itemData[item]._id, itemData[item].name, d, itemData[item].severity, itemData[item].complete);
-          itemList.push(i);
-        }
+      try {
+        const itemData = await getItems();
+        const itemList = (itemData || []).map((row) =>
+          new Item(row.id, row.name, parseDue(row.due), row.urgency, row.impact, row.complete)
+        );
         setItems(new ItemQueue(itemList));
-      }
-      else {
+      } catch (err) {
         setItems(new ItemQueue());
       }
     }
 
-    // Checks if the user is authorized to access the url
-    function authCheck(url){
-      const path = url.split('?')[0];
-      if (!isAuthenticated() && !PUBLIC_PATHS.includes(path)){
-        setAuthorized(false);
-        router.push('/login');
-      } else {
-        setAuthorized(true);
-      }
+    if (loading) return;
+
+    const path = router.pathname.split('?')[0];
+    if (!user && !PUBLIC_PATHS.includes(path)) {
+      setAuthorized(false);
+      router.push('/login');
+      return;
     }
 
-    if (isAuthenticated()) {
+    setAuthorized(true);
+
+    if (user) {
       updateItems();
+    } else {
+      setItems(new ItemQueue());
     }
-    authCheck(router.pathname);
+  }, [user, loading, router.pathname, router, setItems]);
 
-    router.events.on('routeChangeComplete', authCheck);
-
-    return () => {
-      router.events.off('routeChangeComplete', authCheck);
-    };
-  },[router.events, router.pathname, setItems, router]);
+  if (loading || (!authorized && !PUBLIC_PATHS.includes(router.pathname))) {
+    return null;
+  }
 
   return <>{authorized && props.children}</>
 }

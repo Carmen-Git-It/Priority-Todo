@@ -5,11 +5,9 @@ export default function Layout(props) {
   return (
     <>
       <MainNav />
-      <br />
-      <Container>
+      <Container className="app-content">
         {props.children}
       </Container>
-      <br />
     </>
   );
 }

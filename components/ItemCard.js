@@ -1,5 +1,6 @@
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
+import Badge from 'react-bootstrap/Badge';
 
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
@@ -42,20 +43,54 @@ export default function ItemCard(props) {
     item.complete = false;
   }
 
+  const daysLeft = getDaysLeft(item);
+  const overdue = !item.complete && daysLeft < 0;
+  const cardClass = [
+    "prior-card",
+    removedStatus ? "invisible" : "",
+    item.complete ? "is-complete" : overdue ? "is-overdue" : "",
+    props.featured ? "shadow-lg" : "",
+  ].filter(Boolean).join(" ");
+
+  let statusBadge;
+  if (item.complete) {
+    statusBadge = <Badge bg="success">Completed</Badge>;
+  } else if (overdue) {
+    statusBadge = <Badge bg="danger">Overdue</Badge>;
+  } else {
+    statusBadge = <Badge bg="secondary">Incomplete</Badge>;
+  }
+
   return (
-    <>
-      <Card className={removedStatus ? "invisible" : ""}>
-        <Card.Body>
+    <Card className={cardClass}>
+      <Card.Body>
+        <div className="prior-card__header">
           <Card.Title>{item.name ? item.name : "No name for task"}</Card.Title>
-          <Card.Text>
-            <strong>Due: </strong>{item.due ? item.due.toDateString() : "Undefined"} <br />
-            <strong>Status: </strong>{item.complete ? "Completed" : getDaysLeft(item) < 0 ? "Overdue" : "Incomplete"} <br />
-            <strong>Importance: </strong>{item.severity ? item.severity : "Undefined"}
-          </Card.Text>
-          <Button variant="primary" onClick={remove}><strong>Remove</strong></Button>
-          <Button variant="primary" onClick={completeStatus ? reset : complete}><strong>{completeStatus ? "Reset" : "Complete"}</strong></Button>
-        </Card.Body>
-      </Card>
-    </>
+          {statusBadge}
+        </div>
+
+        <div className="prior-card__meta">
+          <div className="prior-card__meta-row">
+            <span className="prior-card__meta-label">Due</span>
+            <span className="prior-card__meta-value">{item.due ? item.due.toDateString() : "—"}</span>
+          </div>
+          <div className="prior-card__meta-row">
+            <span className="prior-card__meta-label">Urgency</span>
+            <span className="prior-card__meta-value">{item.urgency ? `${item.urgency} / 5` : "—"}</span>
+          </div>
+          <div className="prior-card__meta-row">
+            <span className="prior-card__meta-label">Impact</span>
+            <span className="prior-card__meta-value">{item.impact ? `${item.impact} / 5` : "—"}</span>
+          </div>
+        </div>
+
+        <div className="prior-card__actions">
+          <Button size="sm" variant="outline-danger" onClick={remove}>Remove</Button>
+          {completeStatus
+            ? <Button size="sm" variant="outline-success" onClick={reset}>Reset</Button>
+            : <Button size="sm" variant="success" onClick={complete}>Complete</Button>}
+        </div>
+      </Card.Body>
+    </Card>
   );
 }

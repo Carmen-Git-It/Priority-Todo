@@ -4,17 +4,17 @@ import Navbar from 'react-bootstrap/Navbar';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { readToken, removeToken } from '@/lib/authenticate';
+import { useAuth } from '@/context/SupabaseAuthProvider';
+import { signOut } from '@/lib/authenticate';
 
 export default function MainNav() {
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
 
-  let token = readToken();
-
-  function logout() {
+  async function logout() {
     setIsExpanded(false);
-    removeToken();
+    await signOut();
     router.push('/login');
   }
 
@@ -22,7 +22,7 @@ export default function MainNav() {
     <>
       <Navbar expand="lg" className="fixed-top navbar-dark bg-primary" expanded={isExpanded}>
         <Container>
-          <Navbar.Brand>{token ? token.userName : 'Priority Todo'}</Navbar.Brand>
+          <Navbar.Brand>{user ? user.email : 'Priority Todo'}</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" onClick={() => {setIsExpanded(!isExpanded)}}/>
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
@@ -31,12 +31,12 @@ export default function MainNav() {
               <Link href="/list" legacyBehavior passHref><Nav.Link active={router.pathname === "/list"} onClick={() => {setIsExpanded(false)}}>List</Nav.Link></Link>
             </Nav>
             &nbsp;
-            {token && 
+            {user &&
             <Nav>
               <Nav.Link onClick={logout}>Logout</Nav.Link>
             </Nav>
             }
-            {!token && 
+            {!user &&
               <Nav>
                 <Link href="/register" legacyBehavior passHref><Nav.Link onClick={()=>{setIsExpanded(false)}} active={router.pathname === "/register"}>Register</Nav.Link></Link>
                 <Link href="/login" legacyBehavior passHref><Nav.Link onClick={()=>{setIsExpanded(false)}} active={router.pathname === "/login"}>Login</Nav.Link></Link>
@@ -44,7 +44,6 @@ export default function MainNav() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <br/><br/>
     </>
   );
 }

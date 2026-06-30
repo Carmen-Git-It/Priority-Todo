@@ -1,39 +1,66 @@
 // Item Object definition
-// name: String
-// due: Date
-// severity: Number (range[1,5])
+// name:     String
+// due:      Date
+// urgency:  Number (range[1,5]) - subjective "how pressing"; tiebreaker only
+// impact:   Number (range[1,5]) - consequence of doing/not doing the task
 
 const msPerDay = 24 * 60 * 60 * 1000;
 
 export class Item {
-  constructor(id, name, due, severity, complete) {
+  constructor(id, name, due, urgency, impact, complete) {
     this.id = id;
     this.name = name;
     this.due = due;
-    this.severity = severity;
+    this.urgency = urgency;
+    this.impact = impact;
     this.complete = complete;
   }
 }
 
+// Whole-day difference between the due date and today. A task due today = 0
+// (not overdue); yesterday = -1; tomorrow = +1. Comparing calendar days avoids
+// a task due today flipping to "overdue" as the day progresses.
 export function getDaysLeft(item) {
-  return (item.due.getTime() - new Date().getTime()) / msPerDay;
+  const startOfDay = (d) => {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x.getTime();
+  };
+  return Math.round((startOfDay(item.due) - startOfDay(new Date())) / msPerDay);
 }
 
 // Queue Item
 // Higher priority value means higher priority; descending priority queue
+//
+// The score is driven by IMPACT and the DUE DATE. URGENCY is only a tiebreaker:
+// it scales the main score by up to ~4%, so it can only reorder tasks whose
+// impact + due date already place them within ~4% of each other (i.e. similar
+// impact and similar due date). It can never override a meaningful difference
+// in impact or due date.
 export class QItem {
   constructor(item) {
     this.item = item;
     const daysLeft = getDaysLeft(item);
 
-    // Add one to severity before exponent so all severities scale with exponent
-    // Make sure overdue 5 priority items are still higher priority than upcoming 5 priority, but give more weight to overdue items.
+    // Cubing (impact + 1) gives exponentially higher weight to higher-impact
+    // tasks: impact 1 -> 8, 2 -> 27, 3 -> 64, 4 -> 125, 5 -> 216.
+    const impactWeight = (item.impact + 1) ** 3;
+
+    let main;
     if (daysLeft <= 0) {
-      this.priority = (((item.severity + 1) ** 2) * 10000);
+      // Overdue: impact dominates, and priority grows the longer a task is
+      // overdue so an item a week overdue outranks one a day overdue.
+      main = impactWeight * 10000 + Math.abs(daysLeft) * 1000;
     } else {
-      // Severity cubed gives exponentially higher priority to items of a higher severity
-      this.priority = (((item.severity + 1 ** 3)) * 1000) / daysLeft;
+      // Sooner-due tasks rank higher; dividing by daysLeft makes priority
+      // rise as the due date approaches.
+      main = (impactWeight * 1000) / daysLeft;
     }
+
+    // Urgency tiebreaker: 1.00 (urgency 1) .. 1.04 (urgency 5).
+    const urgencyFactor = 1 + (item.urgency - 1) * 0.01;
+
+    this.priority = main * urgencyFactor;
   }
 }
 
