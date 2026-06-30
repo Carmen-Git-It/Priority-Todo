@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { useAuth } from "@/context/SupabaseAuthProvider";
 import { itemsAtom } from "@/store";
@@ -18,44 +18,46 @@ function parseDue(value) {
 export default function RouteGuard(props) {
   const { user, loading } = useAuth();
   const [items, setItems] = useAtom(itemsAtom);
-  const [authorized, setAuthorized] = useState(false);
 
   const router = useRouter();
+  const path = router.pathname.split('?')[0];
+  const isPublicPath = PUBLIC_PATHS.includes(path);
+  // Derived during render: a route is viewable while public OR once signed in.
+  const authorized = !loading && (isPublicPath || !!user);
 
   useEffect(() => {
+    if (loading) return;
+
+    if (!user) {
+      if (!isPublicPath) {
+        router.push('/login');
+      } else {
+        setItems(new ItemQueue());
+      }
+      return;
+    }
+
+    let cancelled = false;
     async function updateItems() {
       try {
         const itemData = await getItems();
+        if (cancelled) return;
         const itemList = (itemData || []).map((row) =>
           new Item(row.id, row.name, parseDue(row.due), row.urgency, row.impact, row.complete)
         );
         setItems(new ItemQueue(itemList));
       } catch (err) {
-        setItems(new ItemQueue());
+        if (!cancelled) setItems(new ItemQueue());
       }
     }
+    updateItems();
 
-    if (loading) return;
+    return () => { cancelled = true; };
+  }, [user, loading, isPublicPath, router, setItems]);
 
-    const path = router.pathname.split('?')[0];
-    if (!user && !PUBLIC_PATHS.includes(path)) {
-      setAuthorized(false);
-      router.push('/login');
-      return;
-    }
-
-    setAuthorized(true);
-
-    if (user) {
-      updateItems();
-    } else {
-      setItems(new ItemQueue());
-    }
-  }, [user, loading, router.pathname, router, setItems]);
-
-  if (loading || (!authorized && !PUBLIC_PATHS.includes(router.pathname))) {
+  if (loading || !authorized) {
     return null;
   }
 
-  return <>{authorized && props.children}</>
+  return <>{props.children}</>
 }

@@ -24,7 +24,7 @@ export default function Home() {
       <p className="page-subtitle">The single most important thing to do right now.</p>
 
       {!items.isEmpty() && (
-        <ItemCard item={getItem()} update={updateItem} featured />
+        <ItemCard key={getItem().id} item={getItem()} update={updateItem} featured />
       )}
 
       {items.isEmpty() && (

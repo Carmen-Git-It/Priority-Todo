@@ -2,7 +2,7 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Badge from 'react-bootstrap/Badge';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { itemsAtom } from '@/store';
 import { removeItem, completeItem, resetItem } from '@/lib/userData';
@@ -13,10 +13,6 @@ export default function ItemCard(props) {
   const [items, setItems] = useAtom(itemsAtom);
   const [completeStatus, setCompleteStatus] = useState(item.complete);
   const [removedStatus, setRemovedStatus] = useState(false);
-
-  useEffect(() => {
-    setCompleteStatus(item.complete);
-  },[item]);
 
   async function remove() {
     await removeItem(item.id);
@@ -31,7 +27,6 @@ export default function ItemCard(props) {
   async function complete() {
     await completeItem(item.id);
     setCompleteStatus(true);
-    item.complete = true;
     if (props.update) {
       props.update();
     }
@@ -40,20 +35,19 @@ export default function ItemCard(props) {
   async function reset() {
     await resetItem(item.id);
     setCompleteStatus(false);
-    item.complete = false;
   }
 
   const daysLeft = getDaysLeft(item);
-  const overdue = !item.complete && daysLeft < 0;
+  const overdue = !completeStatus && daysLeft < 0;
   const cardClass = [
     "prior-card",
     removedStatus ? "invisible" : "",
-    item.complete ? "is-complete" : overdue ? "is-overdue" : "",
+    completeStatus ? "is-complete" : overdue ? "is-overdue" : "",
     props.featured ? "shadow-lg" : "",
   ].filter(Boolean).join(" ");
 
   let statusBadge;
-  if (item.complete) {
+  if (completeStatus) {
     statusBadge = <Badge bg="success">Completed</Badge>;
   } else if (overdue) {
     statusBadge = <Badge bg="danger">Overdue</Badge>;
