@@ -54,7 +54,7 @@ export default function Add() {
                   Impact <span className="slider-value">{itemData.impact}</span>
                 </Form.Label>
                 <Form.Control type="range" min="1" max="5" value={itemData.impact} required name="impact" onChange={handleInput}/>
-                <Form.Text>The consequence of doing (or not doing) this. Main driver of priority along with the due date.</Form.Text>
+                <Form.Text>The consequence of doing (or not doing) this.</Form.Text>
               </Form.Group>
 
               <Form.Group className="mb-2">
@@ -62,7 +62,7 @@ export default function Add() {
                   Urgency <span className="slider-value">{itemData.urgency}</span>
                 </Form.Label>
                 <Form.Control type="range" min="1" max="5" value={itemData.urgency} required name="urgency" onChange={handleInput}/>
-                <Form.Text>How pressing it feels. Used only to break ties between tasks of similar impact and due date.</Form.Text>
+                <Form.Text>How pressing it feels.</Form.Text>
               </Form.Group>
             </div>
 
