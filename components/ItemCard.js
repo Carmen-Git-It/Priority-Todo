@@ -69,12 +69,12 @@ export default function ItemCard(props) {
             <span className="prior-card__meta-value">{item.due ? item.due.toDateString() : "—"}</span>
           </div>
           <div className="prior-card__meta-row">
-            <span className="prior-card__meta-label">Urgency</span>
-            <span className="prior-card__meta-value">{item.urgency ? `${item.urgency} / 5` : "—"}</span>
-          </div>
-          <div className="prior-card__meta-row">
             <span className="prior-card__meta-label">Impact</span>
             <span className="prior-card__meta-value">{item.impact ? `${item.impact} / 5` : "—"}</span>
+          </div>
+          <div className="prior-card__meta-row">
+            <span className="prior-card__meta-label">Urgency</span>
+            <span className="prior-card__meta-value">{item.urgency ? `${item.urgency} / 5` : "—"}</span>
           </div>
         </div>
 
