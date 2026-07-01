@@ -341,7 +341,6 @@ input[type="date"] { max-width: 240px; }
 
 /* Skip bar on Home */
 .skip-bar { gap: .5rem; }
-.skip-bar__hint { color: var(--primary-hover); font-weight: 600; }
 
 /* Recurrence fields row in the Add form */
 .recurrence-fields .form-control,

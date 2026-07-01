@@ -43,10 +43,6 @@ export default function Home() {
     setSkipOffset((o) => Math.min(o + 1, pending.length - 1));
   }
 
-  function back() {
-    setSkipOffset((o) => Math.max(0, o - 1));
-  }
-
   return (
     <div className="page-narrow">
       <h1 className="page-title">Up Next</h1>
@@ -57,14 +53,7 @@ export default function Home() {
           <ItemCard key={getItem().id} item={getItem()} update={updateItem} featured />
 
           {pending.length > 1 && (
-            <div className="d-flex align-items-center justify-content-between mt-3 skip-bar">
-              <Button size="sm" variant="outline-secondary" onClick={back} disabled={skipOffset === 0}>
-                Back
-              </Button>
-              <span className="text-muted small">
-                {skipOffset + 1} of {pending.length}
-                {skipOffset > 0 && <span className="skip-bar__hint"> · skipped</span>}
-              </span>
+            <div className="d-flex justify-content-end mt-3 skip-bar">
               <Button size="sm" variant="outline-primary" onClick={skip} disabled={skipOffset >= pending.length - 1}>
                 Skip
               </Button>
