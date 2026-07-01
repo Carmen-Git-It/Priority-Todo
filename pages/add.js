@@ -86,7 +86,7 @@ export default function Add() {
                   checked={itemData.recurring}
                   onChange={handleInput}
                 />
-                <Form.Text>Completing a recurring task spawns the next occurrence (due = this due date + the interval below).</Form.Text>
+                <Form.Text>How often should this be done?</Form.Text>
               </Form.Group>
 
               {itemData.recurring && (
