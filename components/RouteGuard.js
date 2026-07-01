@@ -4,16 +4,10 @@ import { useEffect } from "react";
 
 import { useAuth } from "@/context/SupabaseAuthProvider";
 import { itemsAtom } from "@/store";
-import { getItems } from "@/lib/userData";
-import { Item, ItemQueue } from "@/model/item";
+import { refreshItemsAtom } from "@/lib/userData";
+import { ItemQueue } from "@/model/item";
 
 const PUBLIC_PATHS = ['/register', '/login'];
-
-function parseDue(value) {
-  // Postgres `date` columns come back as 'YYYY-MM-DD'; parse as local midnight
-  // so .toDateString() renders the same day the user picked.
-  return new Date(value + 'T00:00:00');
-}
 
 export default function RouteGuard(props) {
   const { user, loading } = useAuth();
@@ -39,16 +33,12 @@ export default function RouteGuard(props) {
 
     let cancelled = false;
     async function updateItems() {
-      try {
-        const itemData = await getItems();
-        if (cancelled) return;
-        const itemList = (itemData || []).map((row) =>
-          new Item(row.id, row.name, parseDue(row.due), row.urgency, row.impact, row.complete)
-        );
-        setItems(new ItemQueue(itemList));
-      } catch (err) {
-        if (!cancelled) setItems(new ItemQueue());
-      }
+      // refreshItemsAtom re-fetches + rebuilds the queue; ignore results if a
+      // later effect superseded this one.
+      if (cancelled) return;
+      await refreshItemsAtom((next) => {
+        if (!cancelled) setItems(next);
+      });
     }
     updateItems();
 

@@ -181,6 +181,7 @@ a:hover { color: var(--primary-hover); }
 .badge.bg-secondary { background: var(--text-faint) !important; }
 .badge.bg-danger    { background: var(--danger) !important; }
 .badge.bg-success    { background: var(--success) !important; }
+.badge.bg-info       { background: var(--primary-soft) !important; color: var(--primary-hover) !important; }
 .badge.bg-warning.text-dark { background: var(--warning-soft) !important; color: var(--warning) !important; }
 
 /* ---------------------------------------------------------
@@ -337,3 +338,33 @@ input[type="date"] { max-width: 240px; }
 /* utility */
 .gap-2 { gap: .5rem; }
 .w-fit { width: fit-content; }
+
+/* Skip bar on Home */
+.skip-bar { gap: .5rem; }
+.skip-bar__hint { color: var(--primary-hover); font-weight: 600; }
+
+/* Recurrence fields row in the Add form */
+.recurrence-fields .form-control,
+.recurrence-fields .form-select {
+  max-width: 140px;
+}
+.badge.bg-info { font-weight: 600; }
+
+/* ---------------------------------------------------------
+   Mobile: tighten the Add form so all fields fit without scrolling
+   --------------------------------------------------------- */
+@media (max-width: 575.98px) {
+  .page-title { margin-top: 0; }
+  .page-subtitle { margin: -.1rem 0 1rem; }
+  .prior-card .card-body { padding: 1.1rem 1.1rem; }
+  /* Shrink the Add form's inter-field spacing on phone */
+  .page-narrow form > .mb-4 { margin-bottom: 1rem !important; }
+  .page-narrow form > .mb-3 { margin-bottom: .9rem !important; }
+  .page-narrow form .form-text { margin-top: .2rem; }
+  .form-section + .form-section {
+    margin-top: 1rem;
+    padding-top: .9rem;
+  }
+  /* The action row on the Add form */
+  .page-narrow form > .d-flex.gap-2.mt-4 { margin-top: 1.1rem !important; }
+}

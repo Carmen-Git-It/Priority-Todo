@@ -1,19 +1,36 @@
 // Item Object definition
-// name:     String
-// due:      Date
-// urgency:  Number (range[1,5]) - subjective "how pressing"; tiebreaker only
-// impact:   Number (range[1,5]) - consequence of doing/not doing the task
+// name:                String
+// due:                 Date
+// urgency:             Number (range[1,5]) - subjective "how pressing"; tiebreaker only
+// impact:              Number (range[1,5]) - consequence of doing/not doing the task
+// recurrenceInterval:  Number|null - cycle length (e.g. every 2 weeks)
+// recurrenceUnit:      String|null - 'day' | 'week' | 'month'; null when not recurring
 
 const msPerDay = 24 * 60 * 60 * 1000;
 
 export class Item {
-  constructor(id, name, due, urgency, impact, complete) {
+  constructor(id, name, due, urgency, impact, complete, recurrenceInterval, recurrenceUnit) {
     this.id = id;
     this.name = name;
     this.due = due;
     this.urgency = urgency;
     this.impact = impact;
     this.complete = complete;
+    this.recurrenceInterval = recurrenceInterval ?? null;
+    this.recurrenceUnit = recurrenceUnit ?? null;
+  }
+
+  get recurring() {
+    return Boolean(this.recurrenceInterval && this.recurrenceUnit);
+  }
+
+  recurrenceLabel() {
+    if (!this.recurring) return null;
+    const unitLabel = this.recurrenceUnit === 'day' ? 'day'
+      : this.recurrenceUnit === 'week' ? 'week'
+      : 'month';
+    const plural = this.recurrenceInterval === 1 ? '' : 's';
+    return `Repeats every ${this.recurrenceInterval} ${unitLabel}${plural}`;
   }
 }
 
@@ -27,6 +44,35 @@ export function getDaysLeft(item) {
     return x.getTime();
   };
   return Math.round((startOfDay(item.due) - startOfDay(new Date())) / msPerDay);
+}
+
+// Compute the next due date for a recurring item by adding one cycle to the
+// CURRENT due date (not to "now"). This keeps recurring tasks aligned to their
+// cadence rather than drifting based on when the user happened to complete them.
+export function nextDueDate(item) {
+  const d = new Date(item.due);
+  switch (item.recurrenceUnit) {
+    case 'day':
+      d.setDate(d.getDate() + item.recurrenceInterval);
+      break;
+    case 'week':
+      d.setDate(d.getDate() + item.recurrenceInterval * 7);
+      break;
+    case 'month':
+      d.setMonth(d.getMonth() + item.recurrenceInterval);
+      break;
+    default:
+      return null;
+  }
+  return d;
+}
+
+// Format a Date as 'YYYY-MM-DD' for the Postgres `date` column.
+export function formatDueDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 // Queue Item
@@ -112,6 +158,18 @@ export class ItemQueue {
     return item;
   }
 
+  // Move a specific item (by its Item id) into the completed bucket.
+  // Used by the Home page when completing the currently-shown item, which may
+  // not be the front item (the user may have skipped past the true top).
+  completeById(id) {
+    const idx = this.items.findIndex((q) => q.item.id === id);
+    if (idx === -1) return this;
+    const [qItem] = this.items.splice(idx, 1);
+    qItem.priority = 0;
+    this.completed.push(qItem);
+    return this;
+  }
+
   // Returns the highest priority element
   // Returns null if empty
   front() {
@@ -135,9 +193,10 @@ export class ItemQueue {
     return str;
   }
 
-  // Remove a specific item from the queue
+  // Remove a specific item from the queue (by its Item id). Does NOT move it
+  // to the completed bucket — used when an item is deleted.
   remove(id) {
-    this.items = this.items.filter((i) => i.id != id);
+    this.items = this.items.filter((q) => q.item.id !== id);
     return this;
   }
 }

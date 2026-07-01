@@ -11,11 +11,14 @@ export default function Add() {
     due: new Date().toISOString().slice(0, 10),
     urgency: 3,
     impact: 3,
+    recurring: false,
+    recurrenceInterval: 1,
+    recurrenceUnit: "week",
   });
 
   const handleInput = (e) => {
     const fieldName = e.target.name;
-    const fieldValue = e.target.value;
+    const fieldValue = e.target.type === "checkbox" ? e.target.checked : e.target.value;
 
     setItemData((prevState) => ({
       ...prevState,
@@ -25,7 +28,14 @@ export default function Add() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addItem(itemData.name, itemData.due, itemData.urgency, itemData.impact);
+    await addItem(
+      itemData.name,
+      itemData.due,
+      itemData.urgency,
+      itemData.impact,
+      itemData.recurring ? itemData.recurrenceInterval : null,
+      itemData.recurring ? itemData.recurrenceUnit : null,
+    );
     router.push('/');
   }
 
@@ -64,6 +74,34 @@ export default function Add() {
                 <Form.Control type="range" min="1" max="5" value={itemData.urgency} required name="urgency" onChange={handleInput}/>
                 <Form.Text>How pressing it feels.</Form.Text>
               </Form.Group>
+            </div>
+
+            <div className="form-section">
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="checkbox"
+                  id="recurring"
+                  name="recurring"
+                  label="Repeat this task"
+                  checked={itemData.recurring}
+                  onChange={handleInput}
+                />
+                <Form.Text>Completing a recurring task spawns the next occurrence (due = this due date + the interval below).</Form.Text>
+              </Form.Group>
+
+              {itemData.recurring && (
+                <Form.Group className="mb-2 recurrence-fields">
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                    <span className="text-muted">Every</span>
+                    <Form.Control type="number" min="1" max="365" name="recurrenceInterval" value={itemData.recurrenceInterval} onChange={handleInput} aria-label="Recurrence interval" />
+                    <Form.Select name="recurrenceUnit" value={itemData.recurrenceUnit} onChange={handleInput} aria-label="Recurrence unit">
+                      <option value="day">day(s)</option>
+                      <option value="week">week(s)</option>
+                      <option value="month">month(s)</option>
+                    </Form.Select>
+                  </div>
+                </Form.Group>
+              )}
             </div>
 
             <div className="d-flex gap-2 mt-4">
